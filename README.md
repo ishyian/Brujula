@@ -2,7 +2,7 @@
 
 The purpose of this application is to show the proper implementation of Brujula Library
 
-## MobilePush SDK
+## Brujula SDK
 
 Brujula SDK has a functionality to Situm SDK and GPS
 
