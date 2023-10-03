@@ -64,5 +64,5 @@ Brujula.getInstance().addOnBrujulaListener(object : OnBrujulaListener {
 You can receive nearest areas by triggering this method
 
 ```
-MobilePushSdk.getInstance().getNearestAreas();
+Brujula.getInstance().getNearestAreas();
 ```
