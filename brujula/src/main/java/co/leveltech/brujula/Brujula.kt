@@ -2,7 +2,6 @@ package co.leveltech.brujula
 
 import android.content.Context
 import co.leveltech.brujula.data.Area
-import co.leveltech.brujula.data.Prize
 import co.leveltech.brujula.listener.OnBrujulaListener
 
 class Brujula {
@@ -14,12 +13,7 @@ class Brujula {
 
     fun addOnBrujulaListener(listener: OnBrujulaListener) {
         this.listener = listener
-        this.listener?.onEnterArea(enteredArea)
-        this.listener?.onPrizeWin(mockPrize)
     }
-
-    private val mockPrize = Prize("Prize 1")
-    private val enteredArea = Area(50.4501, 30.5234, "Entered Area 1")
 
     private val nearestAreas = listOf(
         Area(50.4501, 30.5234, "Area 1"),
