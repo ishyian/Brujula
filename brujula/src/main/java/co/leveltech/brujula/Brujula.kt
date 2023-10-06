@@ -78,6 +78,8 @@ class Brujula {
             fun build() {
                 instance = Brujula()
                 SitumSdk.init(context)
+                SitumSdk.configuration()
+                    .setApiKey("email@email.com", "6db97e2ade7a18505bf9ada7caec9c91a59aafea455ab770109799472c03feeb")
                 SitumSdk.configuration().isUseRemoteConfig = true
             }
         }
