@@ -6,12 +6,16 @@ import co.leveltech.brujula.data.Area
 import co.leveltech.brujula.listener.OnBrujulaListener
 import es.situm.sdk.SitumSdk
 import es.situm.sdk.error.Error
+import es.situm.sdk.location.GeofenceListener
 import es.situm.sdk.location.LocationListener
 import es.situm.sdk.location.LocationRequest
 import es.situm.sdk.location.LocationStatus
+import es.situm.sdk.model.cartography.Geofence
 import es.situm.sdk.model.location.Location
+import io.reactivex.disposables.CompositeDisposable
 
 class Brujula {
+    private var disposables = CompositeDisposable()
     private var listener: OnBrujulaListener? = null
     private val locationRequest: LocationRequest by lazy {
         LocationRequest.Builder().build()
@@ -20,12 +24,10 @@ class Brujula {
     private val locationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             Log.d("Brujula", location.toString())
-            listener?.onEnterArea(Area(location.coordinate.latitude, location.coordinate.longitude, "Area from Gps"))
         }
 
         override fun onStatusChanged(locationStatus: LocationStatus) {
             Log.d("Brujula", locationStatus.toString())
-
         }
 
         override fun onError(error: Error) {
@@ -33,28 +35,40 @@ class Brujula {
         }
     }
 
+    private val geofenceListener = object : GeofenceListener {
+        override fun onEnteredGeofences(geofences: MutableList<Geofence>?) {
+            Log.d("Brujula", "onEnteredGeofences")
+            geofences?.let {
+                listener?.onEnterArea(Area(geofences))
+            }
+        }
+
+        override fun onExitedGeofences(geofences: MutableList<Geofence>?) {
+            Log.d("Brujula", "onExitedGeofences")
+        }
+    }
+
     fun startPositioning() {
         SitumSdk.locationManager().requestLocationUpdates(locationRequest, locationListener)
+        SitumSdk.locationManager().setGeofenceListener(geofenceListener)
+    }
+
+    fun loginIntoSitumSdk() {
+
     }
 
     fun stopPositioning() {
         SitumSdk.locationManager().removeUpdates()
     }
 
-    fun getNearestAreas(): List<Area> {
-        return nearestAreas
+    fun getNearestAreas(): List<Geofence> {
+        return emptyList()
     }
 
     fun addOnBrujulaListener(listener: OnBrujulaListener) {
         this.listener = listener
 
     }
-
-    private val nearestAreas = listOf(
-        Area(50.4501, 30.5234, "Area 1"),
-        Area(50.4501, 31.5234, "Area 2"),
-        Area(50.4501, 32.5234, "Area 3")
-    )
 
     companion object {
         private const val BRUJULA_GET_INSTANCE_ERROR_MSG =

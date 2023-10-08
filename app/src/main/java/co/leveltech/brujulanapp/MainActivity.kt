@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 
     private val listener = object : OnBrujulaListener {
         override fun onEnterArea(area: Area) {
-            textLog.text = "${area.title} Location ${area.latitude} ${area.longitude}"
+            textLog.text = area.geofence.joinToString("\n") { it.name }
         }
 
         override fun onPrizeWin(prize: Prize) {
@@ -84,12 +84,10 @@ class MainActivity : AppCompatActivity() {
     private fun initClick() {
         findViewById<Button>(R.id.btn_get_areas).setOnClickListener {
             val areas = Brujula.getInstance().getNearestAreas()
-            textLog.text = areas
-                .joinToString("\n") { "${it.title} Location: ${it.latitude} ${it.longitude}" }
         }
 
         findViewById<Button>(R.id.btn_enter_area).setOnClickListener {
-            listener.onEnterArea(enteredArea)
+
         }
 
         findViewById<Button>(R.id.btn_prize_win).setOnClickListener {
@@ -100,6 +98,5 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private val TAG = this::class.java.simpleName
         private val mockPrize = Prize("Prize 1")
-        private val enteredArea = Area(50.4501, 30.5234, "Entered Area 1")
     }
 }

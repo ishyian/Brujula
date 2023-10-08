@@ -1,3 +1,5 @@
 package co.leveltech.brujula.data
 
-class Area(val latitude: Double, val longitude: Double, val title: String)
+import es.situm.sdk.model.cartography.Geofence
+
+class Area(val geofence: List<Geofence>)
