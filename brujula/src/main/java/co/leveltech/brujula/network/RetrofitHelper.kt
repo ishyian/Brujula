@@ -7,14 +7,12 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 
-internal class RetrofitHelper(
-    serverUrl: String
-) {
+internal class RetrofitHelper() {
     val api by lazy {
-        getRetrofitInstance(serverUrl).create(BrujulaApi::class.java)
+        getRetrofitInstance().create(BrujulaApi::class.java)
     }
 
-    private fun getRetrofitInstance(serverUrl: String): Retrofit {
+    private fun getRetrofitInstance(): Retrofit {
         val httpClient = OkHttpClient.Builder()
         if (BuildConfig.DEBUG) {
             val logging = HttpLoggingInterceptor()
@@ -23,9 +21,11 @@ internal class RetrofitHelper(
         }
         return Retrofit.Builder()
             .client(httpClient.build())
-            .baseUrl(serverUrl)
+            .baseUrl(baseUrl)
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+
+    private val baseUrl = "https://brujula.level-tech.co/"
 }

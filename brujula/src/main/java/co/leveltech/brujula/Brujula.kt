@@ -3,7 +3,10 @@ package co.leveltech.brujula
 import android.content.Context
 import android.util.Log
 import co.leveltech.brujula.data.Area
+import co.leveltech.brujula.data.Repository
+import co.leveltech.brujula.extensions.async
 import co.leveltech.brujula.listener.OnBrujulaListener
+import co.leveltech.brujula.network.RetrofitHelper
 import es.situm.sdk.SitumSdk
 import es.situm.sdk.error.Error
 import es.situm.sdk.location.GeofenceListener
@@ -13,48 +16,46 @@ import es.situm.sdk.location.LocationStatus
 import es.situm.sdk.model.cartography.Geofence
 import es.situm.sdk.model.location.Location
 import io.reactivex.disposables.CompositeDisposable
+import java.util.concurrent.TimeUnit
 
 class Brujula {
     private var disposables = CompositeDisposable()
     private var listener: OnBrujulaListener? = null
+    private var repository: Repository? = null
+
     private val locationRequest: LocationRequest by lazy {
         LocationRequest.Builder().build()
     }
 
     private val locationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
-            Log.d("Brujula", location.toString())
+            //Nothing
         }
 
         override fun onStatusChanged(locationStatus: LocationStatus) {
-            Log.d("Brujula", locationStatus.toString())
+            //Nothing
         }
 
         override fun onError(error: Error) {
-            Log.d("Brujula", error.toString())
+            //Nothing
         }
     }
 
     private val geofenceListener = object : GeofenceListener {
         override fun onEnteredGeofences(geofences: MutableList<Geofence>?) {
-            Log.d("Brujula", "onEnteredGeofences")
             geofences?.let {
                 listener?.onEnterArea(Area(geofences))
             }
         }
 
         override fun onExitedGeofences(geofences: MutableList<Geofence>?) {
-            Log.d("Brujula", "onExitedGeofences")
+            //Nothing
         }
     }
 
     fun startPositioning() {
         SitumSdk.locationManager().requestLocationUpdates(locationRequest, locationListener)
         SitumSdk.locationManager().setGeofenceListener(geofenceListener)
-    }
-
-    fun loginIntoSitumSdk() {
-
     }
 
     fun stopPositioning() {
@@ -70,9 +71,50 @@ class Brujula {
 
     }
 
+    private fun loginIntoSitumSdk() {
+        disposables.add(
+            repository!!.login()
+                .async()
+                .subscribe(::onLoginIntoSitumSuccess, ::onLoginIntoSitumError)
+        )
+    }
+
+    private fun onLoginIntoSitumSuccess(apiKey: String) {
+        SitumSdk.configuration().setApiKey("email@email.com", apiKey)
+        SitumSdk.configuration().isUseRemoteConfig = true
+        Log.d(TAG, "Login success")
+    }
+
+    private fun onLoginIntoSitumError(throwable: Throwable) {
+        Log.e(TAG, "Login error", throwable)
+    }
+
+    private fun checkPrizes() {
+        disposables.add(
+            repository!!.checkPrizes()
+                .async()
+                .repeatWhen { observable ->
+                    observable.delay(60, TimeUnit.SECONDS)
+                }
+                .subscribe(
+                    ::onCheckPrizesSuccess, ::onCheckPrizesError
+                )
+        )
+    }
+
+    private fun onCheckPrizesSuccess(result: String) {
+
+    }
+
+    private fun onCheckPrizesError(result: Throwable) {
+
+    }
+
     companion object {
         private const val BRUJULA_GET_INSTANCE_ERROR_MSG =
             "Brujula was not initialized properly. Use Brujula.Builder to init library."
+        private const val TAG =
+            "BrujulaSdk"
 
         private var instance: Brujula? = null
 
@@ -91,10 +133,12 @@ class Brujula {
         ) {
             fun build() {
                 instance = Brujula()
+                val retrofit = RetrofitHelper()
+                instance!!.repository =
+                    Repository(retrofit.api)
                 SitumSdk.init(context)
-                SitumSdk.configuration()
-                    .setApiKey("email@email.com", "6db97e2ade7a18505bf9ada7caec9c91a59aafea455ab770109799472c03feeb")
-                SitumSdk.configuration().isUseRemoteConfig = true
+                instance?.loginIntoSitumSdk()
+                instance?.checkPrizes()
             }
         }
     }
