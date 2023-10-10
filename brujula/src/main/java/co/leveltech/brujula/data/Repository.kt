@@ -1,20 +1,18 @@
 package co.leveltech.brujula.data
 
+import co.leveltech.brujula.data.response.LoginResponseModel
+import co.leveltech.brujula.data.response.PrizesResponseModel
 import co.leveltech.brujula.network.BrujulaApi
 import io.reactivex.Observable
 
 internal class Repository(
     private val api: BrujulaApi
 ) {
-    fun login(): Observable<String> {
-        return Observable.fromCallable {
-            "6db97e2ade7a18505bf9ada7caec9c91a59aafea455ab770109799472c03feeb"
-        }
+    fun login(): Observable<LoginResponseModel> {
+        return api.login()
     }
 
-    fun checkPrizes(): Observable<String> {
-        return Observable.fromCallable {
-            "prize found"
-        }
+    fun checkPrizes(nonce: Int?): Observable<PrizesResponseModel> {
+        return api.checkPrize(nonce)
     }
 }

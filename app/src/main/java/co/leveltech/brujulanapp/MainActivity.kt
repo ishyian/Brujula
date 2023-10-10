@@ -32,13 +32,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    private var prizeTextWin = "No prize text win"
+    private var enterArea = "No area entered"
+
     private val listener = object : OnBrujulaListener {
         override fun onEnterArea(area: Area) {
-            textLog.text = area.geofence.joinToString("\n") { it.name }
+            enterArea = "Entered area:" + area.geofence.joinToString("\n") { it.name }
         }
 
         override fun onPrizeWin(prize: Prize) {
-            textLog.text = "Prize win: ${prize.name}"
+            prizeTextWin = "Prize win: ${prize.name} ${prize.received}"
         }
     }
 
@@ -83,20 +86,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun initClick() {
         findViewById<Button>(R.id.btn_get_areas).setOnClickListener {
-            val areas = Brujula.getInstance().getNearestAreas()
+            textLog.text = "Loading nearest areas..."
+            Brujula.getInstance().getNearestAreas { geofences ->
+                textLog.text = geofences.toString()
+            }
         }
 
         findViewById<Button>(R.id.btn_enter_area).setOnClickListener {
-
+            textLog.text = enterArea
         }
 
         findViewById<Button>(R.id.btn_prize_win).setOnClickListener {
-            listener.onPrizeWin(mockPrize)
+            textLog.text = prizeTextWin
         }
     }
 
     companion object {
         private val TAG = this::class.java.simpleName
-        private val mockPrize = Prize("Prize 1")
     }
 }

@@ -3,7 +3,10 @@ package co.leveltech.brujula
 import android.content.Context
 import android.util.Log
 import co.leveltech.brujula.data.Area
+import co.leveltech.brujula.data.Prize
 import co.leveltech.brujula.data.Repository
+import co.leveltech.brujula.data.response.LoginResponseModel
+import co.leveltech.brujula.data.response.PrizesResponseModel
 import co.leveltech.brujula.extensions.async
 import co.leveltech.brujula.listener.OnBrujulaListener
 import co.leveltech.brujula.network.RetrofitHelper
@@ -13,8 +16,10 @@ import es.situm.sdk.location.GeofenceListener
 import es.situm.sdk.location.LocationListener
 import es.situm.sdk.location.LocationRequest
 import es.situm.sdk.location.LocationStatus
+import es.situm.sdk.model.cartography.Building
 import es.situm.sdk.model.cartography.Geofence
 import es.situm.sdk.model.location.Location
+import es.situm.sdk.utils.Handler
 import io.reactivex.disposables.CompositeDisposable
 import java.util.concurrent.TimeUnit
 
@@ -22,6 +27,8 @@ class Brujula {
     private var disposables = CompositeDisposable()
     private var listener: OnBrujulaListener? = null
     private var repository: Repository? = null
+    private var nonce: Int? = null
+    private var buildingId: String = "14582"
 
     private val locationRequest: LocationRequest by lazy {
         LocationRequest.Builder().build()
@@ -62,8 +69,20 @@ class Brujula {
         SitumSdk.locationManager().removeUpdates()
     }
 
-    fun getNearestAreas(): List<Geofence> {
-        return emptyList()
+    fun getNearestAreas(onAreasLoaded: (List<Geofence>) -> Unit) {
+        val building = Building.Builder().identifier(buildingId).build()
+        SitumSdk.communicationManager().fetchGeofencesFromBuilding(building, object : Handler<List<Geofence>> {
+            override fun onSuccess(geofences: List<Geofence>?) {
+                Log.d(TAG, "onSuccessGetNearestAreas ${geofences?.size}")
+                geofences?.let {
+                    onAreasLoaded(geofences)
+                }
+            }
+
+            override fun onFailure(error: Error?) {
+                Log.e(TAG, "onFailureGetNearestAreas ${error?.toString()}")
+            }
+        })
     }
 
     fun addOnBrujulaListener(listener: OnBrujulaListener) {
@@ -79,8 +98,8 @@ class Brujula {
         )
     }
 
-    private fun onLoginIntoSitumSuccess(apiKey: String) {
-        SitumSdk.configuration().setApiKey("email@email.com", apiKey)
+    private fun onLoginIntoSitumSuccess(model: LoginResponseModel) {
+        SitumSdk.configuration().setApiKey(model.ips.user, model.ips.token)
         SitumSdk.configuration().isUseRemoteConfig = true
         Log.d(TAG, "Login success")
     }
@@ -90,8 +109,11 @@ class Brujula {
     }
 
     private fun checkPrizes() {
+        if (nonce != null) {
+            nonce = requireNotNull(nonce) + 1
+        }
         disposables.add(
-            repository!!.checkPrizes()
+            repository!!.checkPrizes(nonce)
                 .async()
                 .repeatWhen { observable ->
                     observable.delay(60, TimeUnit.SECONDS)
@@ -102,12 +124,22 @@ class Brujula {
         )
     }
 
-    private fun onCheckPrizesSuccess(result: String) {
-
+    private fun onCheckPrizesSuccess(model: PrizesResponseModel) {
+        nonce = model.nonce
+        if (model.prizes.isNotEmpty()) {
+            val prize = model.prizes.first()
+            listener?.onPrizeWin(
+                Prize(
+                    id = prize.id ?: "",
+                    name = prize.name ?: "",
+                    received = prize.received
+                )
+            )
+        }
     }
 
     private fun onCheckPrizesError(result: Throwable) {
-
+        Log.d(TAG, "onCheckPrizesError", result)
     }
 
     companion object {

@@ -64,5 +64,7 @@ Brujula.getInstance().addOnBrujulaListener(object : OnBrujulaListener {
 You can receive nearest areas by triggering this method
 
 ```
-Brujula.getInstance().getNearestAreas();
+Brujula.getInstance().getNearestAreas { geofences ->
+                ...
+            }
 ```
