@@ -10,11 +10,13 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import co.leveltech.brujula.Brujula
 import co.leveltech.brujula.data.Area
 import co.leveltech.brujula.data.Prize
 import co.leveltech.brujula.listener.OnBrujulaListener
 import co.leveltech.brujulan.R
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private val textLog by lazy {
@@ -32,16 +34,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    private var prizeTextWin = "No prize text win"
-    private var enterArea = "No area entered"
+    private var onPrizeWinText = "No prize text win"
+    private var onEnterAreaText = "No area entered"
 
     private val listener = object : OnBrujulaListener {
         override fun onEnterArea(area: Area) {
-            enterArea = "Entered area:" + area.geofence.joinToString("\n") { it.name }
+            onEnterAreaText = "Entered area:" + area.geofence.joinToString("\n") { it.name }
         }
 
         override fun onPrizeWin(prize: Prize) {
-            prizeTextWin = "Prize win: ${prize.name} ${prize.received}"
+            onPrizeWinText = "Prize win: ${prize.name} ${prize.received}"
         }
     }
 
@@ -87,17 +89,18 @@ class MainActivity : AppCompatActivity() {
     private fun initClick() {
         findViewById<Button>(R.id.btn_get_areas).setOnClickListener {
             textLog.text = "Loading nearest areas..."
-            Brujula.getInstance().getNearestAreas { geofences ->
-                textLog.text = geofences.toString()
+            lifecycleScope.launch {
+                val areas = Brujula.getInstance().getNearestAreas()
+                textLog.text = areas.map { it.geofence }.toString()
             }
         }
 
         findViewById<Button>(R.id.btn_enter_area).setOnClickListener {
-            textLog.text = enterArea
+            textLog.text = onEnterAreaText
         }
 
         findViewById<Button>(R.id.btn_prize_win).setOnClickListener {
-            textLog.text = prizeTextWin
+            textLog.text = onPrizeWinText
         }
     }
 

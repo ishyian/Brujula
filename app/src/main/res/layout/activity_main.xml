@@ -20,14 +20,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="24dp"
-        android:text="Enter area" />
+        android:text="on Enter Area" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_prize_win"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="24dp"
-        android:text="Win prize" />
+        android:text="on Prize Win" />
 
     <TextView
         android:id="@+id/text_log"

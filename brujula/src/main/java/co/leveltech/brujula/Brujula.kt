@@ -22,6 +22,8 @@ import es.situm.sdk.model.location.Location
 import es.situm.sdk.utils.Handler
 import io.reactivex.disposables.CompositeDisposable
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class Brujula {
     private var disposables = CompositeDisposable()
@@ -69,18 +71,18 @@ class Brujula {
         SitumSdk.locationManager().removeUpdates()
     }
 
-    fun getNearestAreas(onAreasLoaded: (List<Geofence>) -> Unit) {
+    suspend fun getNearestAreas(): List<Area> = suspendCoroutine { continuation ->
         val building = Building.Builder().identifier(buildingId).build()
         SitumSdk.communicationManager().fetchGeofencesFromBuilding(building, object : Handler<List<Geofence>> {
             override fun onSuccess(geofences: List<Geofence>?) {
                 Log.d(TAG, "onSuccessGetNearestAreas ${geofences?.size}")
-                geofences?.let {
-                    onAreasLoaded(geofences)
-                }
+                return continuation.resume(geofences?.map {
+                    Area(listOf(it))
+                } ?: emptyList())
             }
 
             override fun onFailure(error: Error?) {
-                Log.e(TAG, "onFailureGetNearestAreas ${error?.toString()}")
+                return continuation.resume(emptyList())
             }
         })
     }
