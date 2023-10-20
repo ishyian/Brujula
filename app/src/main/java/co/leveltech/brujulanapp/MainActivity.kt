@@ -36,6 +36,9 @@ class MainActivity : AppCompatActivity() {
 
     private var onPrizeWinText = "No prize text win"
     private var onEnterAreaText = "No area entered"
+    private val userId = "johnDoe"
+    private val fullName = "John Doe"
+    private val apiKey = "apiKey"
 
     private val listener = object : OnBrujulaListener {
         override fun onEnterArea(area: Area) {
@@ -51,7 +54,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Brujula.Companion.Builder(this).build()
+        Brujula.Companion.Builder(
+            context = this,
+            userId = userId,
+            fullName = fullName,
+            apiToken = apiKey
+        ).build()
         Brujula.getInstance().addOnBrujulaListener(listener)
 
         initClick()

@@ -31,6 +31,9 @@ class Brujula {
     private var repository: Repository? = null
     private var nonce: Int? = null
     private var buildingId: String = "14582"
+    private var fullName = ""
+    private var userId = ""
+    private var apiToken = ""
 
     private val locationRequest: LocationRequest by lazy {
         LocationRequest.Builder().build()
@@ -163,13 +166,19 @@ class Brujula {
         }
 
         class Builder(
-            private var context: Context
+            private val context: Context,
+            private val userId: String,
+            private val fullName: String,
+            private val apiToken: String
         ) {
             fun build() {
                 instance = Brujula()
                 val retrofit = RetrofitHelper()
                 instance!!.repository =
                     Repository(retrofit.api)
+                instance!!.userId = userId
+                instance!!.fullName = fullName
+                instance!!.apiToken = apiToken
                 SitumSdk.init(context)
                 instance?.loginIntoSitumSdk()
                 instance?.checkPrizes()
