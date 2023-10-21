@@ -5,23 +5,20 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.Fragment
 import co.leveltech.brujula.Brujula
 import co.leveltech.brujula.data.Area
 import co.leveltech.brujula.data.Prize
 import co.leveltech.brujula.listener.OnBrujulaListener
 import co.leveltech.brujulan.R
-import kotlinx.coroutines.launch
+import co.leveltech.brujulanapp.helloworld.HelloWorldFragment
+import co.leveltech.brujulanapp.map.MapFragment
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
-    private val textLog by lazy {
-        findViewById<TextView>(R.id.text_log)
-    }
 
     private val requestPermissionLauncher =
         registerForActivityResult(
@@ -34,19 +31,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    private var onPrizeWinText = "No prize text win"
-    private var onEnterAreaText = "No area entered"
+    private val currentFragment by lazy {
+        supportFragmentManager.findFragmentById(R.id.container) as Fragment
+    }
+
     private val userId = "johnDoe"
     private val fullName = "John Doe"
     private val apiKey = "apiKey"
 
     private val listener = object : OnBrujulaListener {
         override fun onEnterArea(area: Area) {
-            onEnterAreaText = "Entered area:" + area.geofence.joinToString("\n") { it.name }
+            (currentFragment as? HelloWorldFragment)?.onEnterArea(area)
         }
 
         override fun onPrizeWin(prize: Prize) {
-            onPrizeWinText = "Prize win: ${prize.name} ${prize.received}"
+            (currentFragment as? HelloWorldFragment)?.onPrizeWin(prize)
+
         }
     }
 
@@ -60,10 +60,19 @@ class MainActivity : AppCompatActivity() {
             fullName = fullName,
             apiToken = apiKey
         ).build()
-        Brujula.getInstance().addOnBrujulaListener(listener)
 
-        initClick()
+        Brujula.getInstance().addOnBrujulaListener(listener)
         startLocationUpdates()
+
+        setCurrentFragment(HelloWorldFragment())
+
+        findViewById<BottomNavigationView>(R.id.bottomNavigationView).setOnNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.hello_world -> setCurrentFragment(HelloWorldFragment())
+                R.id.map -> setCurrentFragment(MapFragment())
+            }
+            true
+        }
     }
 
     @SuppressLint("InlinedApi")
@@ -94,23 +103,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun initClick() {
-        findViewById<Button>(R.id.btn_get_areas).setOnClickListener {
-            textLog.text = "Loading nearest areas..."
-            lifecycleScope.launch {
-                val areas = Brujula.getInstance().getNearestAreas()
-                textLog.text = areas.map { it.geofence }.toString()
-            }
+    private fun setCurrentFragment(fragment: Fragment) =
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.container, fragment)
+            commit()
         }
-
-        findViewById<Button>(R.id.btn_enter_area).setOnClickListener {
-            textLog.text = onEnterAreaText
-        }
-
-        findViewById<Button>(R.id.btn_prize_win).setOnClickListener {
-            textLog.text = onPrizeWinText
-        }
-    }
 
     companion object {
         private val TAG = this::class.java.simpleName

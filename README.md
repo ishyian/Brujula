@@ -38,7 +38,12 @@ class SampleApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        Brujula.Builder(context = this).build()
+        Brujula.Companion.Builder(
+            context = this,
+            userId = userId,
+            fullName = fullName,
+            apiToken = apiKey
+        ).build()
     }
 }
 ```
@@ -69,3 +74,22 @@ coroutineScope.launch {
                 ...
             }
 ```
+
+### Map
+
+Create a BrujulaMapView in your xml layout:
+
+```
+<co.leveltech.brujula.view.BrujulaMapView
+        android:id="@+id/brujulaMapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+```
+
+Call method to configure BrujulaMapView
+
+```
+val mapView = view.findViewById<BrujulaMapView>(R.id.brujulaMapView)
+Brujula.getInstance().configureMapView(mapView)
+```
+

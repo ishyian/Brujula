@@ -10,6 +10,7 @@ import co.leveltech.brujula.data.response.PrizesResponseModel
 import co.leveltech.brujula.extensions.async
 import co.leveltech.brujula.listener.OnBrujulaListener
 import co.leveltech.brujula.network.RetrofitHelper
+import co.leveltech.brujula.view.BrujulaMapView
 import es.situm.sdk.SitumSdk
 import es.situm.sdk.error.Error
 import es.situm.sdk.location.GeofenceListener
@@ -20,6 +21,9 @@ import es.situm.sdk.model.cartography.Building
 import es.situm.sdk.model.cartography.Geofence
 import es.situm.sdk.model.location.Location
 import es.situm.sdk.utils.Handler
+import es.situm.sdk.wayfinding.MapView
+import es.situm.sdk.wayfinding.MapViewConfiguration
+import es.situm.sdk.wayfinding.MapViewController
 import io.reactivex.disposables.CompositeDisposable
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
@@ -74,6 +78,20 @@ class Brujula {
         SitumSdk.locationManager().removeUpdates()
     }
 
+    fun configureMapView(mapView: BrujulaMapView) {
+        val configuration: MapViewConfiguration = MapViewConfiguration.Builder()
+            .setBuildingIdentifier(buildingId).build()
+        mapView.map.load(configuration, object : MapView.MapViewCallback {
+            override fun onLoad(mapViewController: MapViewController) {
+                Log.d(TAG, "onLoad")
+            }
+
+            override fun onError(error: Error) {
+                Log.e(TAG, "configureMapView $error")
+            }
+        })
+    }
+
     suspend fun getNearestAreas(): List<Area> = suspendCoroutine { continuation ->
         val building = Building.Builder().identifier(buildingId).build()
         SitumSdk.communicationManager().fetchGeofencesFromBuilding(building, object : Handler<List<Geofence>> {
@@ -92,7 +110,6 @@ class Brujula {
 
     fun addOnBrujulaListener(listener: OnBrujulaListener) {
         this.listener = listener
-
     }
 
     private fun loginIntoSitumSdk() {
