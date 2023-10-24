@@ -14,4 +14,14 @@ class MapFragment : Fragment(R.layout.fragment_map) {
         val mapView = view.findViewById<BrujulaMapView>(R.id.brujulaMapView)
         Brujula.getInstance().configureMapView(mapView)
     }
+
+    override fun onResume() {
+        super.onResume()
+        Brujula.getInstance().onResume()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Brujula.getInstance().onStop()
+    }
 }

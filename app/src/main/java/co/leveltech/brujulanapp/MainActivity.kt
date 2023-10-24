@@ -10,9 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import co.leveltech.brujula.Brujula
-import co.leveltech.brujula.data.Area
-import co.leveltech.brujula.data.Prize
-import co.leveltech.brujula.listener.OnBrujulaListener
 import co.leveltech.brujulan.R
 import co.leveltech.brujulanapp.helloworld.HelloWorldFragment
 import co.leveltech.brujulanapp.map.MapFragment
@@ -31,24 +28,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    private val currentFragment by lazy {
-        supportFragmentManager.findFragmentById(R.id.container) as Fragment
-    }
 
     private val userId = "johnDoe"
     private val fullName = "John Doe"
     private val apiKey = "apiKey"
-
-    private val listener = object : OnBrujulaListener {
-        override fun onEnterArea(area: Area) {
-            (currentFragment as? HelloWorldFragment)?.onEnterArea(area)
-        }
-
-        override fun onPrizeWin(prize: Prize) {
-            (currentFragment as? HelloWorldFragment)?.onPrizeWin(prize)
-
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +44,6 @@ class MainActivity : AppCompatActivity() {
             apiToken = apiKey
         ).build()
 
-        Brujula.getInstance().addOnBrujulaListener(listener)
         startLocationUpdates()
 
         setCurrentFragment(HelloWorldFragment())

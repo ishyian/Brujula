@@ -7,14 +7,10 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import co.leveltech.brujula.Brujula
-import co.leveltech.brujula.data.Area
-import co.leveltech.brujula.data.Prize
 import co.leveltech.brujulan.R
 import kotlinx.coroutines.launch
 
 class HelloWorldFragment : Fragment(R.layout.fragment_hello_world) {
-    private var onPrizeWinText = "No prize text win"
-    private var onEnterAreaText = "No area entered"
     private val textLog by lazy {
         requireNotNull(view).findViewById<TextView>(R.id.text_log)
     }
@@ -34,19 +30,7 @@ class HelloWorldFragment : Fragment(R.layout.fragment_hello_world) {
         }
 
         view.findViewById<Button>(R.id.btn_enter_area).setOnClickListener {
-            textLog.text = onEnterAreaText
+            Brujula.getInstance().enterZone()
         }
-
-        view.findViewById<Button>(R.id.btn_prize_win).setOnClickListener {
-            textLog.text = onPrizeWinText
-        }
-    }
-
-    fun onEnterArea(area: Area) {
-        onEnterAreaText = "Entered area:" + area.geofence.joinToString("\n") { it.name }
-    }
-
-    fun onPrizeWin(prize: Prize) {
-        onPrizeWinText = "Prize win: ${prize.name} ${prize.received}"
     }
 }

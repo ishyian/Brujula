@@ -24,10 +24,11 @@ repositories {
 ...
 ```
 
-4. In your module-level build.gradle add the following line
+4. In your module-level build.gradle add the following lines
 
 ```
 implementation(name:'brujula-release-<VERSION>', ext:'aar')
+implementation(name:'unity-release-<VERSION>', ext:'aar')
 ```
 
 ### Implementation
@@ -48,20 +49,28 @@ class SampleApplication : Application() {
 }
 ```
 
-### Setup listener
+### Enter zone
 
-Add listener to receive entered area and prize
+Trigger enterZone to open a Unity game
 
 ```
-Brujula.getInstance().addOnBrujulaListener(object : OnBrujulaListener {
-            override fun onEnterArea(area: Area) {
-                //Area
-            }
+Brujula.getInstance().enterZone()
+```
 
-            override fun onPrizeWin(prize: Prize) {
-                //Prize 
-            }
-        })
+### Enter zone
+
+Add lifecycle events to make sure enter zone events working right
+
+```
+override fun onResume() {
+        super.onResume()
+        Brujula.getInstance().onResume()
+    }
+
+override fun onStop() {
+        super.onStop()
+        Brujula.getInstance().onStop()
+    }
 ```
 
 ### Nearest area

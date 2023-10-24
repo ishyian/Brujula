@@ -3,13 +3,11 @@ package co.leveltech.brujula
 import android.content.Context
 import android.util.Log
 import co.leveltech.brujula.data.Area
-import co.leveltech.brujula.data.Prize
 import co.leveltech.brujula.data.Repository
 import co.leveltech.brujula.data.response.LoginResponseModel
-import co.leveltech.brujula.data.response.PrizesResponseModel
 import co.leveltech.brujula.extensions.async
-import co.leveltech.brujula.listener.OnBrujulaListener
 import co.leveltech.brujula.network.RetrofitHelper
+import co.leveltech.brujula.network.UnityHelper
 import co.leveltech.brujula.view.BrujulaMapView
 import es.situm.sdk.SitumSdk
 import es.situm.sdk.error.Error
@@ -25,20 +23,19 @@ import es.situm.sdk.wayfinding.MapView
 import es.situm.sdk.wayfinding.MapViewConfiguration
 import es.situm.sdk.wayfinding.MapViewController
 import io.reactivex.disposables.CompositeDisposable
-import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class Brujula {
     private var disposables = CompositeDisposable()
-    private var listener: OnBrujulaListener? = null
     private var repository: Repository? = null
-    private var nonce: Int? = null
     private var buildingId: String = "14582"
     private var fullName = ""
     private var userId = ""
     private var apiToken = ""
     private var tk = "5ace1d6372cb69f5132ad7e3662e2905709893e7dbd7b3cc4539fdf01b3c619c"
+    private var unityHelper: UnityHelper? = null
+    private var isMapVisible = false
 
     private val locationRequest: LocationRequest by lazy {
         LocationRequest.Builder().build()
@@ -61,7 +58,7 @@ class Brujula {
     private val geofenceListener = object : GeofenceListener {
         override fun onEnteredGeofences(geofences: MutableList<Geofence>?) {
             geofences?.let {
-                listener?.onEnterArea(Area(geofences))
+                if (isMapVisible) enterZone()
             }
         }
 
@@ -93,6 +90,14 @@ class Brujula {
         })
     }
 
+    fun onResume() {
+        instance?.isMapVisible = true
+    }
+
+    fun onStop() {
+        instance?.isMapVisible = false
+    }
+
     suspend fun getNearestAreas(): List<Area> = suspendCoroutine { continuation ->
         val building = Building.Builder().identifier(buildingId).build()
         SitumSdk.communicationManager().fetchGeofencesFromBuilding(building, object : Handler<List<Geofence>> {
@@ -109,8 +114,8 @@ class Brujula {
         })
     }
 
-    fun addOnBrujulaListener(listener: OnBrujulaListener) {
-        this.listener = listener
+    fun enterZone() {
+        unityHelper?.openUnityGame()
     }
 
     private fun loginIntoSitumSdk() {
@@ -124,45 +129,12 @@ class Brujula {
     private fun onLoginIntoSitumSuccess(model: LoginResponseModel) {
         SitumSdk.configuration().setApiKey(model.ips.user, model.ips.token)
         SitumSdk.configuration().isUseRemoteConfig = true
+        instance?.buildingId = model.ips.building
         Log.d(TAG, "Login success")
     }
 
     private fun onLoginIntoSitumError(throwable: Throwable) {
         Log.e(TAG, "Login error", throwable)
-    }
-
-    private fun checkPrizes() {
-        if (nonce != null) {
-            nonce = requireNotNull(nonce) + 1
-        }
-        disposables.add(
-            repository!!.checkPrizes(nonce)
-                .async()
-                .repeatWhen { observable ->
-                    observable.delay(60, TimeUnit.SECONDS)
-                }
-                .subscribe(
-                    ::onCheckPrizesSuccess, ::onCheckPrizesError
-                )
-        )
-    }
-
-    private fun onCheckPrizesSuccess(model: PrizesResponseModel) {
-        nonce = model.nonce
-        if (model.prizes.isNotEmpty()) {
-            val prize = model.prizes.first()
-            listener?.onPrizeWin(
-                Prize(
-                    id = prize.id ?: "",
-                    name = prize.name ?: "",
-                    received = prize.received
-                )
-            )
-        }
-    }
-
-    private fun onCheckPrizesError(result: Throwable) {
-        Log.d(TAG, "onCheckPrizesError", result)
     }
 
     companion object {
@@ -197,6 +169,7 @@ class Brujula {
                 instance!!.userId = userId
                 instance!!.fullName = fullName
                 instance!!.apiToken = apiToken
+                instance?.unityHelper = UnityHelper(context)
                 SitumSdk.init(context)
                 instance?.loginIntoSitumSdk()
             }
