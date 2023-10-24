@@ -8,8 +8,8 @@ import io.reactivex.Observable
 internal class Repository(
     private val api: BrujulaApi
 ) {
-    fun login(): Observable<LoginResponseModel> {
-        return api.login()
+    fun login(tk: String, userId: String): Observable<LoginResponseModel> {
+        return api.login(tk, userId)
     }
 
     fun checkPrizes(nonce: Int?): Observable<PrizesResponseModel> {

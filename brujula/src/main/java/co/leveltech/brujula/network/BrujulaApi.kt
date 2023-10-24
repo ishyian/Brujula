@@ -8,7 +8,7 @@ import retrofit2.http.Query
 
 internal interface BrujulaApi {
     @GET("login.json")
-    fun login(): Observable<LoginResponseModel>
+    fun login(@Query("tk") tk: String, @Query("userId") userId: String): Observable<LoginResponseModel>
 
     @GET("checkPrize.json")
     fun checkPrize(

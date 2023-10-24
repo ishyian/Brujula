@@ -38,6 +38,7 @@ class Brujula {
     private var fullName = ""
     private var userId = ""
     private var apiToken = ""
+    private var tk = "5ace1d6372cb69f5132ad7e3662e2905709893e7dbd7b3cc4539fdf01b3c619c"
 
     private val locationRequest: LocationRequest by lazy {
         LocationRequest.Builder().build()
@@ -114,7 +115,7 @@ class Brujula {
 
     private fun loginIntoSitumSdk() {
         disposables.add(
-            repository!!.login()
+            repository!!.login(tk, userId)
                 .async()
                 .subscribe(::onLoginIntoSitumSuccess, ::onLoginIntoSitumError)
         )
@@ -198,7 +199,6 @@ class Brujula {
                 instance!!.apiToken = apiToken
                 SitumSdk.init(context)
                 instance?.loginIntoSitumSdk()
-                instance?.checkPrizes()
             }
         }
     }

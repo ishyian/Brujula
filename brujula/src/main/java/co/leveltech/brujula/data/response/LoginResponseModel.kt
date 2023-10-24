@@ -1,24 +1,31 @@
 package co.leveltech.brujula.data.response
 
+
 import com.google.gson.annotations.SerializedName
 
-internal data class LoginResponseModel(
+data class LoginResponseModel(
     @SerializedName("ips")
     val ips: Ips,
     @SerializedName("user")
     val user: User
 ) {
-    internal data class Ips(
+    data class Ips(
+        @SerializedName("building")
+        val building: String,
         @SerializedName("token")
         val token: String,
         @SerializedName("user")
         val user: String
     )
 
-    internal data class User(
+    data class User(
+        @SerializedName("availablePrizes")
+        val availablePrizes: Int,
         @SerializedName("name")
         val name: String,
-        @SerializedName("token")
-        val token: String
+        @SerializedName("prizes")
+        val prizes: List<Any>,
+        @SerializedName("score")
+        val score: Int
     )
 }
