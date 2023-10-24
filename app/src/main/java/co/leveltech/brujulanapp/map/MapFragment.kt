@@ -2,6 +2,7 @@ package co.leveltech.brujulanapp.map
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import androidx.fragment.app.Fragment
 import co.leveltech.brujula.Brujula
 import co.leveltech.brujula.view.BrujulaMapView
@@ -13,6 +14,10 @@ class MapFragment : Fragment(R.layout.fragment_map) {
         super.onViewCreated(view, savedInstanceState)
         val mapView = view.findViewById<BrujulaMapView>(R.id.brujulaMapView)
         Brujula.getInstance().configureMapView(mapView)
+
+        view.findViewById<Button>(R.id.btn_enter_area).setOnClickListener {
+            Brujula.getInstance().enterZone()
+        }
     }
 
     override fun onResume() {

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import co.leveltech.brujula.Brujula
@@ -30,7 +31,9 @@ class HelloWorldFragment : Fragment(R.layout.fragment_hello_world) {
         }
 
         view.findViewById<Button>(R.id.btn_enter_area).setOnClickListener {
-            Brujula.getInstance().enterZone()
+            if (!Brujula.getInstance().enterZone()) {
+                Toast.makeText(requireContext(), "Map is not active", Toast.LENGTH_LONG).show()
+            }
         }
     }
 }

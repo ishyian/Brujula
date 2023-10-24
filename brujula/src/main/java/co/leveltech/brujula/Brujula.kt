@@ -114,8 +114,9 @@ class Brujula {
         })
     }
 
-    fun enterZone() {
-        unityHelper?.openUnityGame()
+    fun enterZone(): Boolean {
+        if (isMapVisible) unityHelper?.openUnityGame()
+        return isMapVisible
     }
 
     private fun loginIntoSitumSdk() {
