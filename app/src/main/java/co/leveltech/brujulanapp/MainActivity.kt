@@ -1,13 +1,7 @@
 package co.leveltech.brujulanapp
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import co.leveltech.brujula.Brujula
 import co.leveltech.brujulan.R
@@ -17,21 +11,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
-    private val requestPermissionLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) { granted: Map<String, Boolean> ->
-            if (granted.containsValue(false).not()) {
-                startLocationUpdates()
-            } else {
-                Log.d(TAG, "Location permission not granted")
-            }
-        }
-
-
     private val userId = "johnDoe"
     private val fullName = "John Doe"
-    private val apiKey = "apiKey"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,10 +22,8 @@ class MainActivity : AppCompatActivity() {
             context = this,
             userId = userId,
             fullName = fullName,
-            apiToken = apiKey
+            apiToken = null
         ).build()
-
-        startLocationUpdates()
 
         setCurrentFragment(HelloWorldFragment())
 
@@ -57,33 +36,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("InlinedApi")
-    private fun startLocationUpdates() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.BLUETOOTH_SCAN
-            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                Brujula.getInstance().startPositioning()
-            }
-
-            else -> {
-                requestPermissionLauncher.launch(
-                    arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.BLUETOOTH_SCAN,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    )
-                )
-            }
-        }
-    }
 
     private fun setCurrentFragment(fragment: Fragment) =
         supportFragmentManager.beginTransaction().apply {

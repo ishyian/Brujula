@@ -3,6 +3,7 @@ package co.leveltech.brujula
 import android.content.Context
 import android.util.Log
 import co.leveltech.brujula.data.Area
+import co.leveltech.brujula.data.PermissionHelper
 import co.leveltech.brujula.data.Repository
 import co.leveltech.brujula.data.response.LoginResponseModel
 import co.leveltech.brujula.extensions.async
@@ -32,9 +33,9 @@ class Brujula {
     private var buildingId: String = "14582"
     private var fullName = ""
     private var userId = ""
-    private var apiToken = ""
-    private var tk = "5ace1d6372cb69f5132ad7e3662e2905709893e7dbd7b3cc4539fdf01b3c619c"
+    private var apiToken = "5ace1d6372cb69f5132ad7e3662e2905709893e7dbd7b3cc4539fdf01b3c619c"
     private var unityHelper: UnityHelper? = null
+    private var permissionHelper: PermissionHelper? = null
     private var isMapVisible = false
 
     private val locationRequest: LocationRequest by lazy {
@@ -59,6 +60,9 @@ class Brujula {
         override fun onEnteredGeofences(geofences: MutableList<Geofence>?) {
             geofences?.let {
                 if (isMapVisible) enterZone()
+                if (DEBUG_GEOFENCE) {
+                    unityHelper?.showGeofenceInfo(it)
+                }
             }
         }
 
@@ -67,12 +71,11 @@ class Brujula {
         }
     }
 
-    fun startPositioning() {
+    private fun startPositioning() {
         SitumSdk.locationManager().requestLocationUpdates(locationRequest, locationListener)
-        SitumSdk.locationManager().setGeofenceListener(geofenceListener)
     }
 
-    fun stopPositioning() {
+    private fun stopPositioning() {
         SitumSdk.locationManager().removeUpdates()
     }
 
@@ -92,10 +95,12 @@ class Brujula {
 
     fun onResume() {
         instance?.isMapVisible = true
+        permissionHelper?.startLocationUpdates()
     }
 
     fun onStop() {
         instance?.isMapVisible = false
+        instance?.stopPositioning()
     }
 
     suspend fun getNearestAreas(): List<Area> = suspendCoroutine { continuation ->
@@ -121,7 +126,7 @@ class Brujula {
 
     private fun loginIntoSitumSdk() {
         disposables.add(
-            repository!!.login(tk, userId)
+            repository!!.login(apiToken, userId)
                 .async()
                 .subscribe(::onLoginIntoSitumSuccess, ::onLoginIntoSitumError)
         )
@@ -131,6 +136,7 @@ class Brujula {
         SitumSdk.configuration().setApiKey(model.ips.user, model.ips.token)
         SitumSdk.configuration().isUseRemoteConfig = true
         instance?.buildingId = model.ips.building
+        SitumSdk.locationManager().setGeofenceListener(geofenceListener)
         Log.d(TAG, "Login success")
     }
 
@@ -139,6 +145,7 @@ class Brujula {
     }
 
     companion object {
+        const val DEBUG_GEOFENCE = false
         private const val BRUJULA_GET_INSTANCE_ERROR_MSG =
             "Brujula was not initialized properly. Use Brujula.Builder to init library."
         private const val TAG =
@@ -160,7 +167,7 @@ class Brujula {
             private val context: Context,
             private val userId: String,
             private val fullName: String,
-            private val apiToken: String
+            private val apiToken: String?
         ) {
             fun build() {
                 instance = Brujula()
@@ -169,8 +176,13 @@ class Brujula {
                     Repository(retrofit.api)
                 instance!!.userId = userId
                 instance!!.fullName = fullName
-                instance!!.apiToken = apiToken
+                if (apiToken.isNullOrEmpty().not()) {
+                    instance!!.apiToken = requireNotNull(apiToken)
+                }
                 instance?.unityHelper = UnityHelper(context)
+                instance?.permissionHelper = PermissionHelper(context) {
+                    instance?.startPositioning()
+                }
                 SitumSdk.init(context)
                 instance?.loginIntoSitumSdk()
             }
