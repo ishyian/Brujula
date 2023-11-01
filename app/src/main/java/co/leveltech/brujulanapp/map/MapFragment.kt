@@ -16,7 +16,7 @@ class MapFragment : Fragment(R.layout.fragment_map) {
         Brujula.getInstance().configureMapView(mapView)
 
         view.findViewById<Button>(R.id.btn_enter_area).setOnClickListener {
-            Brujula.getInstance().enterZone()
+            Brujula.getInstance().enterZone(null)
         }
     }
 

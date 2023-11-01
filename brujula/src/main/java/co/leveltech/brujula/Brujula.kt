@@ -58,12 +58,7 @@ class Brujula {
 
     private val geofenceListener = object : GeofenceListener {
         override fun onEnteredGeofences(geofences: MutableList<Geofence>?) {
-            geofences?.let {
-                if (isMapVisible) enterZone()
-                if (DEBUG_GEOFENCE) {
-                    unityHelper?.showGeofenceInfo(it)
-                }
-            }
+            enterZone(geofences)
         }
 
         override fun onExitedGeofences(geofences: MutableList<Geofence>?) {
@@ -119,8 +114,11 @@ class Brujula {
         })
     }
 
-    fun enterZone(): Boolean {
-        if (isMapVisible) unityHelper?.openUnityGame()
+    fun enterZone(geofences: List<Geofence>?): Boolean {
+        if (isMapVisible && DEBUG_GEOFENCE.not()) unityHelper?.openUnityGame()
+        if (DEBUG_GEOFENCE) {
+            unityHelper?.showGeofenceInfo(geofences ?: emptyList())
+        }
         return isMapVisible
     }
 

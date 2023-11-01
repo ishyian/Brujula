@@ -31,7 +31,7 @@ class HelloWorldFragment : Fragment(R.layout.fragment_hello_world) {
         }
 
         view.findViewById<Button>(R.id.btn_enter_area).setOnClickListener {
-            if (!Brujula.getInstance().enterZone()) {
+            if (!Brujula.getInstance().enterZone(null)) {
                 Toast.makeText(requireContext(), "Map is not active", Toast.LENGTH_LONG).show()
             }
         }
