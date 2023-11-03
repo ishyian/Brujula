@@ -33,9 +33,9 @@ android {
 }
 
 dependencies {
-    //implementation project(':brujula')
-    implementation(name: 'brujula-release-5.3.0', ext: 'aar')
-    implementation(name: 'unity-release-0.0.1', ext: 'aar')
+    implementation project(':brujula')
+    //implementation(name: 'brujula-release-5.3.0', ext: 'aar')
+    //implementation(name: 'unity-release-0.0.2', ext: 'aar')
 
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
